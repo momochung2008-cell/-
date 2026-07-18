@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶貝不生氣加班計時器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            font-family: 'Microsoft JhengHei', sans-serif;
+        }
+        .glow-text {
+            text-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+        }
+        .glow-box {
+            box-shadow: 0 0 25px rgba(30, 41, 59, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col items-center py-10 px-4">
+
+    <div class="w-full max-w-2xl bg-slate-900/80 backdrop-blur-md rounded-2xl p-8 glow-box border border-slate-800">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold tracking-wide text-slate-200">💼 BABA乖乖下班時間監控計時器</h1>
+            <p class="text-xs text-slate-400 mt-2">設定：週一至週五 17:00 - 20:00 自動計時監測</p>
+        </div>
+
+        <div class="bg-slate-950/60 rounded-xl p-6 text-center border border-slate-800/50 mb-6">
+            <div id="current-status" class="text-sm font-semibold px-3 py-1 rounded-full inline-block bg-slate-800 text-slate-400 mb-2">
+                偵測系統運行中...
+            </div>
+            <div id="timer-display" class="text-5xl font-mono font-bold my-3 text-slate-300">
+                00:00:00
+            </div>
+            <p id="live-time" class="text-xs text-slate-500 font-mono">目前時間：載入中...</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <button onclick="manualPunchOut()" class="bg-emerald-600 hover:bg-emerald-500 transition-colors text-white font-medium py-3 px-4 rounded-xl text-sm shadow-lg shadow-emerald-900/20">
+                🛑 打卡下班（紀錄當前）
+            </button>
+            <button onclick="toggleManualModal()" class="bg-slate-800 hover:bg-slate-700 transition-colors text-slate-300 font-medium py-3 px-4 rounded-xl text-sm border border-slate-700">
+                ✏️ 手動補登補打卡
+            </button>
+        </div>
+
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-slate-300">📅 本機加班紀錄</h3>
+                <button onclick="exportToCSV()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg transition-colors">
+                    📥 導出為 CSV 紀錄檔
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-4">日期</th>
+                            <th class="py-3 px-4">星期</th>
+                            <th class="py-3 px-4">加班時間段</th>
+                            <th class="py-3 px-4 text-right">總時數</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table-body" class="text-sm text-slate-300 divide-y divide-slate-800/40">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="manual-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-xl p-6 shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-200 mb-4">✏️ 手動補充加班紀錄</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">選擇日期</label>
+                    <input type="date" id="manual-date" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">實際下班簽退時間</label>
+                    <input type="time" id="manual-time" value="18:30" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <p class="text-[11px] text-slate-500">※ 系統將依據您的簽退時間，自動判定 17:00 之後至 20:00 之間的加班總長。</p>
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button onclick="toggleManualModal()" class="px-4 py-2 text-sm text-slate-400 hover:text-slate-200">取消</button>
+                <button onclick="submitManualLog()" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">確認儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logs = JSON.parse(localStorage.getItem('overtime_logs')) || [];
+
+        function updateClock() {
+            const now = new Date();
+            const day = now.getDay(); 
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            
+            // 格式化目前時間顯示
+            document.getElementById('live-time').innerText = `目前時間：${now.toLocaleString('zh-TW')}`;
+            
+            const isWeekday = (day >= 1 && day <= 5);
+            const isOvertimePeriod = isWeekday && (hours >= 17 && hours < 20);
+
+            const statusEl = document.getElementById('current-status');
+            const timerEl = document.getElementById('timer-display');
+
+            if (isOvertimePeriod) {
+                statusEl.innerText = "⚡ 加班時間進行中，自動計時中！";
+                statusEl.className = "text-sm font-semibold px-3 py-1 rounded-full inline-block bg-emerald-950 text-emerald-400 mb-2 border border-emerald-800";
+                timerEl.className = "text-5xl font-mono font-bold my-3 text-emerald-400 glow-text";
+                
+                // 計算從 17:00:00 到現在經過的秒數
+                const startTime = new Date();
+                startTime.setHours(17, 0, 0, 0);
+                const diffMs = now - startTime;
+                timerEl.innerText = formatMsToTime(diffMs);
+            } else {
+                statusEl.innerText = "😴 非法定加班監測時段";
+                statusEl.className = "text-sm font-semibold px-3 py-1 rounded-full inline-block bg-slate-800 text-slate-400 mb-2";
+                timerEl.className = "text-5xl font-mono font-bold my-3 text-slate-500";
+                timerEl.innerText = "00:00:00";
+            }
+        }
+
+        function formatMsToTime(ms) {
+            let totalSecs = Math.floor(ms / 1000);
+            let hrs = Math.floor(totalSecs / 3600);
+            let mins = Math.floor((totalSecs % 3600) / 60);
+            let secs = totalSecs % 60;
+            return `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        }
+
+        // 手動打卡當前
+        function manualPunchOut() {
+            const now = new Date();
+            const day = now.getDay();
+            if (day === 0 || day === 6) {
+                alert("今天是週末，不在週一至週五的加班計算範圍內喔！");
+                return;
+            }
+            saveLog(now.toISOString().split('T')[0], now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0'));
+        }
+
+        function toggleManualModal() {
+            const modal = document.getElementById('manual-modal');
+            modal.classList.toggle('hidden');
+            document.getElementById('manual-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function submitManualLog() {
+            const date = document.getElementById('manual-date').value;
+            const time = document.getElementById('manual-time').value;
+            if(!date || !time) return;
+            
+            saveLog(date, time);
+            toggleManualModal();
+        }
+
+        function saveLog(dateStr, endTimeStr) {
+            const weekDays = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+            const d = new Date(dateStr);
+            const dayName = weekDays[d.getDay()];
+
+            // 解析時間計算時數
+            const [endH, endM] = endTimeStr.split(':').map(Number);
+            
+            let startH = 17, startM = 0;
+            let totalHours = 0;
+
+            // 限制最高計時到 20:00
+            let effH = endH;
+            let effM = endM;
+            if (endH >= 20) {
+                effH = 20; effM = 0;
+            }
+
+            if (effH < 17) {
+                totalHours = 0;
+            } else {
+                const startTotalMins = startH * 60 + startM;
+                const endTotalMins = effH * 60 + effM;
+                totalHours = Math.max(0, (endTotalMins - startTotalMins) / 60);
+            }
+
+            const newLog = {
+                date: dateStr,
+                day: dayName,
+                period: `17:00 - ${endTimeStr}`,
+                hours: totalHours.toFixed(2)
+            };
+
+            // 檢查是否已有同日期的資料，有的話就覆蓋
+            const existingIdx = logs.findIndex(l => l.date === dateStr);
+            if(existingIdx > -1) logs[existingIdx] = newLog;
+            else logs.unshift(newLog);
+
+            localStorage.setItem('overtime_logs', JSON.stringify(logs));
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const tbody = document.getElementById('log-table-body');
+            tbody.innerHTML = logs.map(l => `
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="py-3 px-4 font-mono text-xs">${l.date}</td>
+                    <td class="py-3 px-4">${l.day}</td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-400">${l.period}</td>
+                    <td class="py-3 px-4 text-right font-semibold text-emerald-400 font-mono">${l.hours} 小時</td>
+                </tr>
+            `).join('');
+        }
+
+        function exportToCSV() {
+            if(logs.length === 0) {
+                alert("目前還沒有任何紀錄可以導出！");
+                return;
+            }
+            let csvContent = "\uFEFF日期,星期,加班時間段,今日加班時數(小時)\n";
+            logs.forEach(l => {
+                csvContent += `${l.date},${l.day},${l.period},${l.hours}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `加班計時器匯出紀錄_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 初始化
+        setInterval(updateClock, 1000);
+        updateClock();
+        renderLogs();
+    </script>
+</body>
+</html>
