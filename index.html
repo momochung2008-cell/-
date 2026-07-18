@@ -6,449 +6,363 @@
     <title>寶貝不生氣加班計時器</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #38bdf8;
-            --success: #22c55e;
-            --danger: #ef4444;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --primary-color: #ff6b6b;
+            --success-color: #2ecc71;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
         }
 
         .container {
-            background-color: var(--card-bg);
-            border-radius: 24px;
-            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 30px;
             width: 100%;
-            max-width: 500px;
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+            max-width: 750px; /* 橫式寬度拉長 */
             text-align: center;
-            border: 1px solid #334155;
         }
 
+        /* 標題強制一行，並根據寬度自動縮小字體 */
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-            color: var(--text-main);
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: clamp(1.2rem, 4vw, 2rem); 
+            color: #2c3e50;
             margin-bottom: 25px;
-        }
-
-        /* 氣球與舞台區 */
-        .stage-area {
-            height: 180px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            margin-bottom: 20px;
-            position: relative;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .balloon-container {
+        /* 橫式核心計時區區塊 */
+        .timer-display-wrapper {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            transition: transform 0.5s ease;
-            transform-origin: bottom center;
+            justify-content: center;
+            gap: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px dashed #e2e8f0;
+        }
+
+        .timer {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 小氣球與爆炸特效區域 */
+        .balloon-zone {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .balloon {
-            width: 50px;
-            height: 60px;
-            background-color: #ff6b6b;
-            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-            position: relative;
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2), 2px 2px 5px rgba(0,0,0,0.1);
-            transition: all 0.5s ease;
+            font-size: 24px; /* 初始小小的 */
+            transition: transform 0.3s ease;
+            transform-origin: bottom center;
+            display: inline-block;
         }
 
-        /* 氣球反光點 */
-        .balloon::after {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 10px;
-            height: 15px;
-            background: rgba(255,255,255,0.4);
-            border-radius: 50%;
+        /* 按鈕區改為橫向排列 */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
-        /* 氣球結 */
-        .balloon-knot {
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-bottom: 8px solid #ff6b6b;
-            margin-top: -1px;
-            transition: border-bottom-color 0.5s ease;
+        button {
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        /* 氣球線 */
-        .balloon-string {
-            width: 2px;
-            height: 40px;
-            background-color: var(--text-muted);
-            opacity: 0.5;
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
         }
 
-        .explosion {
-            font-size: 5rem;
-            animation: popEffect 0.3s forwards;
-            display: none;
+        #offWorkBtn {
+            background-color: var(--primary-color);
+            color: white;
         }
 
-        @keyframes popEffect {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); }
-        }
-
-        .timer-display {
-            font-size: 3.5rem;
-            font-weight: 700;
-            font-family: monospace;
-            margin: 10px 0;
-            color: var(--accent);
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        #exportBtn {
+            background-color: #34495e;
+            color: white;
         }
 
         .status-badge {
             display: inline-block;
             padding: 6px 16px;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 30px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background-color: #e2e8f0;
+            color: #4a5568;
+            margin-bottom: 20px;
         }
 
-        .status-waiting { background-color: #334155; color: #cbd5e1; }
-        .status-running { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); animation: pulse 2s infinite; }
-        .status-exploded { background-color: var(--danger); color: white; }
-        .status-done { background-color: rgba(34, 197, 94, 0.2); color: var(--success); }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .btn {
-            background-color: var(--accent);
-            color: var(--bg-color);
-            border: none;
-            padding: 14px 32px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-            box-shadow: 0 4px 6px -1px rgba(56, 189, 248, 0.2);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.3);
-            filter: brightness(1.1);
-        }
-
-        .btn:disabled {
-            background-color: #334155;
-            color: var(--text-muted);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .history-section {
-            margin-top: 35px;
-            border-top: 1px solid #334155;
-            padding-top: 25px;
-            text-align: left;
-        }
-
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .history-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .btn-export {
-            background: none;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn-export:hover {
-            background-color: rgba(56, 189, 248, 0.1);
-        }
-
-        .history-list {
-            max-height: 150px;
+        /* 紀錄表格樣式 */
+        .log-container {
+            max-height: 200px;
             overflow-y: auto;
-            padding-right: 5px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
         }
 
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            background-color: #151f32;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 8px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 0.9rem;
         }
 
-        /* 早下班與獎勵字體 */
-        .text-success-reward {
-            color: var(--success) !important;
+        th {
+            background-color: #edf2f7;
+            color: #4a5568;
+            padding: 10px;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        /* 準時/提早下班的鼓勵綠字樣式 */
+        .good-job {
+            color: var(--success-color);
             font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>💼BABY乖乖下班時間監控計時器</h1>
-        <div class="subtitle">週一至週五 17:00 灌氣 🎈 | 20:00 炸裂 💥</div>
+<div class="container">
+    <h1 id="mainTitle">💼BABY乖乖下班時間監控計時器</h1>
+    
+    <div class="status-badge" id="statusBadge">等待 17:00 監控啟動</div>
 
-        <div class="stage-area">
-            <div id="balloonContainer" class="balloon-container">
-                <div id="balloonBody" class="balloon"></div>
-                <div id="balloonKnot" class="balloon-knot"></div>
-                <div class="balloon-string"></div>
-            </div>
-            <div id="explosionEffect" class="explosion">💥</div>
-        </div>
-
-        <div id="statusBar" class="status-badge status-waiting">等待加班時段 (17:00)</div>
-        <div id="timer" class="timer-display">00:00:00</div>
-        
-        <button id="actionBtn" class="btn" onclick="triggerOffWork()">打卡下班</button>
-
-        <div class="history-section">
-            <div class="history-header">
-                <span class="history-title">最近加班紀錄</span>
-                <button class="btn-export" onclick="exportToCSV()">匯出 Excel (CSV)</button>
-            </div>
-            <div id="historyList" class="history-list">
-                </div>
+    <div class="timer-display-wrapper">
+        <div class="timer" id="timerDisplay">00:00:00</div>
+        <div class="balloon-zone">
+            <span class="balloon" id="overtimeBalloon">🎈</span>
         </div>
     </div>
 
-    <script>
-        let records = JSON.parse(localStorage.getItem('overtime_records_v2')) || [];
-        let isExploded = false;
-        let isStoppedToday = false;
+    <div class="button-group">
+        <button id="offWorkBtn" onclick="triggerOffWork()">打卡下班</button>
+        <button id="exportBtn" onclick="exportToCSV()">導出加班紀錄</button>
+    </div>
 
-        function updateUI() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            const day = now.getDay();
-            const isWeekend = (day === 0 || day === 6);
+    <div class="log-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>簽退時間</th>
+                    <th>加班時數</th>
+                    <th>狀態狀態</th>
+                </tr>
+            </thead>
+            <tbody id="logTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
 
-            const statusBar = document.getElementById('statusBar');
-            const timerDisplay = document.getElementById('timer');
-            const actionBtn = document.getElementById('actionBtn');
-            const balloonContainer = document.getElementById('balloonContainer');
-            const balloonBody = document.getElementById('balloonBody');
-            const balloonKnot = document.getElementById('balloonKnot');
-            const explosionEffect = document.getElementById('explosionEffect');
+<script>
+    let timerInterval;
+    let startTime;
+    let isOvertime = false;
+    let records = JSON.parse(localStorage.getItem('overtime_logs')) || [];
 
-            // 格式化當前時間顯示
-            const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    // 初始化網頁與讀取舊紀錄
+    window.onload = function() {
+        updateLogTable();
+        checkTimeRoutine();
+        setInterval(checkTimeRoutine, 1000);
+    };
 
-            // 判斷是否為今天已按下班
-            const todayStr = now.toLocaleDateString();
-            const hasDoneToday = records.some(r => r.date === todayStr);
-
-            if (hasDoneToday || isStoppedToday) {
-                statusBar.className = "status-badge status-done";
-                statusBar.innerText = "今日打卡已完成 ✨";
-                actionBtn.disabled = true;
-                balloonContainer.style.display = "none";
-                explosionEffect.style.display = "none";
-                return;
-            }
-
-            // 判斷是否進入 17:00 - 20:00 加班爆破時段
-            const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-            const startTotalSeconds = 17 * 3600; // 17:00:00
-            const endTotalSeconds = 20 * 3600;   // 20:00:00
-
-            if (!isWeekend && currentTotalSeconds >= startTotalSeconds && currentTotalSeconds < endTotalSeconds) {
-                // 【加班中 - 氣球膨脹】
-                statusBar.className = "status-badge status-running";
-                statusBar.innerText = "加班氣球灌氣中！請盡速下班！";
-                actionBtn.disabled = false;
-                balloonContainer.style.display = "flex";
-                explosionEffect.style.display = "none";
-
-                // 計算加班秒數與進度
-                const overtimeSeconds = currentTotalSeconds - startTotalSeconds;
-                const hrs = Math.floor(overtimeSeconds / 3600);
-                const mins = Math.floor((overtimeSeconds % 3600) / 60);
-                const secs = overtimeSeconds % 60;
-                timerDisplay.innerText = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-                // 氣球膨脹演算法：從 1.0 倍放大到最大 2.8 倍
-                const maxOvertime = 3 * 3600; // 3小時
-                const progress = Math.min(overtimeSeconds / maxOvertime, 1);
-                const scale = 1 + (progress * 1.8);
-                balloonContainer.style.transform = `scale(${scale})`;
-
-                // 顏色漸變：綠(未加班) -> 黃 -> 紅(快爆炸)
-                const red = Math.floor(107 + (progress * 148)); // 107 -> 255
-                const green = Math.floor(107 - (progress * 107)); // 107 -> 0
-                const blue = Math.floor(107 - (progress * 107));  // 107 -> 0
-                balloonBody.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
-                balloonKnot.style.borderBottomColor = `rgb(${red}, ${green}, ${blue})`;
-
-            } else if (!isWeekend && currentTotalSeconds >= endTotalSeconds) {
-                // 【超時未下班 - 爆炸！】
-                isExploded = true;
-                statusBar.className = "status-badge status-exploded";
-                statusBar.innerText = "💥 氣球炸裂！加班過度人生登出！";
-                timerDisplay.innerText = "03:00:00+";
-                actionBtn.disabled = true;
-
-                balloonContainer.style.display = "none";
-                explosionEffect.style.display = "block";
-            } else {
-                // 【正常上班時間 / 週末】
-                statusBar.className = "status-badge status-waiting";
-                statusBar.innerText = isWeekend ? "放假日休假中 🏖️" : "尚未到下午下班時間 (17:00)";
-                timerDisplay.innerText = timeString;
-                actionBtn.disabled = false; // 允許提前下班
-                balloonContainer.style.transform = "scale(1)";
-                balloonBody.style.backgroundColor = "#22c55e"; // 沒事時是安全綠色
-                balloonKnot.style.borderBottomColor = "#22c55e";
-                balloonContainer.style.display = "flex";
-                explosionEffect.style.display = "none";
+    // 每日時間排程監控
+    function checkTimeRoutine() {
+        const now = new Date();
+        const day = now.getDay();
+        const hours = now.getHours();
+        
+        // 週一至週五
+        if (day >= 1 && day <= 5) {
+            if (hours >= 17 && hours < 20) {
+                if (!isOvertime && !timerInterval) {
+                    startOvertimeTimer();
+                }
+            } else if (hours >= 20) {
+                // 超過 20:00 點沒點下班，氣球爆炸
+                triggerExplosion();
             }
         }
+    }
 
-        function triggerOffWork() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
+    // 啟動加班計時
+    function startOvertimeTimer() {
+        isOvertime = true;
+        document.getElementById('statusBadge').innerText = "⚠️ 偵測到正在加班中！";
+        document.getElementById('statusBadge').style.backgroundColor = "#ffdfdf";
+        document.getElementById('statusBadge').style.color = "#ff6b6b";
+        
+        // 設定當天 17:00 為基準點
+        startTime = new Date();
+        startTime.setHours(17, 0, 0, 0);
+
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+    }
+
+    // 更新計時器與氣球大小
+    function updateTimerDisplay() {
+        const now = new Date();
+        const diff = now - startTime;
+
+        if (diff < 0) return;
+
+        const hrs = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const mins = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const secs = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+
+        document.getElementById('timerDisplay').innerText = `${hrs}:${mins}:${secs}`;
+
+        // 氣球隨時間微幅膨脹（最大放大到 2.5 倍，保持在右邊小小的但看得出變化）
+        const totalMinutes = diff / 60000; 
+        const scale = Math.min(1 + (totalMinutes * 0.01), 2.5);
+        document.getElementById('overtimeBalloon').style.transform = `scale(${scale})`;
+    }
+
+    // 20:00 爆炸機制
+    function triggerExplosion() {
+        if (isOvertime) {
+            clearInterval(timerInterval);
+            document.getElementById('overtimeBalloon').innerText = "💥";
+            document.getElementById('overtimeBalloon').style.transform = "scale(3)";
+            document.getElementById('statusBadge').innerText = "💀 20:00 爆炸了！主人太辛苦了！";
+            document.getElementById('timerDisplay').style.color = "#ff6b6b";
+        }
+    }
+
+    // 按下打卡下班
+    function triggerOffWork() {
+        const now = new Date();
+        const timeString = now.toTimeString().split(' ')[0];
+        const dateString = now.toLocaleDateString();
+
+        let overtimeHours = "00:00:00";
+        let statusText = "準時/提早下班";
+        let isEarly = true;
+
+        if (isOvertime && timerInterval) {
+            clearInterval(timerInterval);
+            overtimeHours = document.getElementById('timerDisplay').innerText;
+            statusText = "已記錄加班";
+            isEarly = false;
+        }
+
+        // 建立新紀錄
+        const newRecord = {
+            date: dateString,
+            time: timeString,
+            duration: overtimeHours,
+            early: isEarly
+        };
+
+        records.push(newRecord);
+        localStorage.setItem('overtime_logs', JSON.stringify(records));
+        
+        // 重置介面
+        isOvertime = false;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        document.getElementById('timerDisplay').innerText = "00:00:00";
+        document.getElementById('overtimeBalloon').innerText = "🎈";
+        document.getElementById('overtimeBalloon').style.transform = "scale(1)";
+        document.getElementById('statusBadge').innerText = "已下班！辛苦了 ❤️";
+        document.getElementById('statusBadge').style.backgroundColor = "#e2e8f0";
+        document.getElementById('statusBadge').style.color = "#4a5568";
+
+        updateLogTable();
+    }
+
+    // 更新網頁紀錄表格
+    function updateLogTable() {
+        const tbody = document.getElementById('logTableBody');
+        tbody.innerHTML = "";
+
+        records.slice().reverse().forEach(r => {
+            const row = document.createElement('tr');
             
-            const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-            const startTotalSeconds = 17 * 3600;
+            // 判斷是否小於 17:00（提早/準時下班）給予綠字鼓勵
+            const statusTdContent = r.early ? `<span class="good-job">很棒! </span>` : `<span>${r.duration}</span>`;
+            const remarkText = r.early ? "準時下班" : "加班紀錄";
 
-            let overtimeText = "00:00:00";
-            let note = "";
+            row.innerHTML = `
+                <td>${r.date}</td>
+                <td>${r.time}</td>
+                <td>${statusTdContent}</td>
+                <td>${remarkText}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
 
-            if (currentTotalSeconds < startTotalSeconds) {
-                // 比 17:00 早下班！
-                overtimeText = "00:00:00 (未加班)";
-                note = "很棒!"; // 標註很棒
-            } else {
-                // 17:00 後下班
-                const overtimeSeconds = currentTotalSeconds - startTotalSeconds;
-                const hrs = Math.floor(overtimeSeconds / 3600);
-                const mins = Math.floor((overtimeSeconds % 3600) / 60);
-                const secs = overtimeSeconds % 60;
-                overtimeText = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-                note = "辛苦了";
-            }
-
-            const newRecord = {
-                date: now.toLocaleDateString(),
-                time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
-                duration: overtimeText,
-                note: note
-            };
-
-            records.unshift(newRecord);
-            localStorage.setItem('overtime_records_v2', JSON.stringify(records));
-            isStoppedToday = true;
-            
-            renderHistory();
-            updateUI();
-            alert(note === "很棒!" ? "早退/準時下班！太讚了，給你一個大拇指！👍" : "辛苦了！下班快回家休息吧！🚗");
+    // 匯出為 Excel 兼容的 CSV 檔案
+    function exportToCSV() {
+        if (records.length === 0) {
+            alert("目前還沒有任何下班紀錄可以導出唷！");
+            return;
         }
 
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            list.innerHTML = "";
-            records.forEach(r => {
-                const item = document.createElement('div');
-                item.className = "history-item";
-                
-                // 判斷是否為「很棒!」，若是則加入綠色高亮樣式
-                const isReward = r.note === "很棒!";
-                const noteSpanClass = isReward ? "text-success-reward" : "";
+        let csvContent = "\uFEFF"; // 填入 BOM 防止 Excel 開啟時亂碼
+        csvContent += "日期,簽退時間,加班時數,備註\n";
 
-                item.innerHTML = `
-                    <span>📅 ${r.date} (${r.time} 下班)</span>
-                    <span class="${noteSpanClass}">⏳ ${r.duration} | ${r.note}</span>
-                `;
-                list.appendChild(item);
-            });
-        }
+        records.forEach(r => {
+            const durationText = r.early ? "很棒!" : r.duration;
+            const remarkText = r.early ? "準時下班" : "加班";
+            csvContent += `${r.date},${r.time},${durationText},${remarkText}\n`;
+        });
 
-        function exportToCSV() {
-            if (records.length === 0) {
-                alert("目前沒有任何紀錄可以匯出喔！");
-                return;
-            }
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `BABY_加班時間紀錄表_${new Date().toLocaleDateString()}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
 
-            // CSV 標頭，微調欄位與提示
-            let csvContent = "\uFEFF日期,下班打卡時間,加班總時數,統計備註\n";
-            
-            records.forEach(r => {
-                csvContent += `"${r.date}","${r.time}","${r.duration}","${r.note}"\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `加班氣球紀錄表_${new Date().toLocaleDateString()}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // 每秒更新一次狀態
-        setInterval(updateUI, 1000);
-        // 初始化載入
-        renderHistory();
-        updateUI();
-    </script>
 </body>
 </html>
