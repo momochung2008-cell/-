@@ -3,418 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💼 BABY乖乖下班時間監控計時器</title>
+    <title>💼BABY乖乖下班時間監控計時器</title>
     <style>
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: rgba(22, 30, 49, 0.85);
-            --text-color: #e2e8f0;
-            --accent-color: #38bdf8;
-            --accent-glow: rgba(56, 189, 248, 0.5);
-            --success-color: #4ade80;
-            --danger-color: #f87171;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #f4f6f9;
+            color: #333;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px;
-            overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 30%, #1e293b 0%, #0b0f19 70%);
+            padding: 20px;
         }
-
         .container {
-            width: 100%;
-            max-width: 800px;
-            background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 25px 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        h1 {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             text-align: center;
-            font-size: clamp(1.1rem, 4.5vw, 1.8rem);
-            margin-bottom: 25px;
-            letter-spacing: 1px;
-            color: #ffffff;
-            text-shadow: 0 0 10px var(--accent-glow);
-            word-break: break-word;
-        }
-
-        /* 響應式核心佈局 */
-        .main-layout {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .control-zone {
+            max-width: 480px;
             width: 100%;
+        }
+        h1 {
+            font-size: 1.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .btn-group {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
         }
-
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-            border: 1px solid transparent;
-            text-align: center;
-        }
-
-        .status-waiting {
-            background: rgba(241, 194, 50, 0.1);
-            color: #f1c232;
-            border-color: rgba(241, 194, 50, 0.3);
-        }
-
-        .status-counting {
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--accent-color);
-            border-color: rgba(56, 189, 248, 0.3);
-            animation: pulse 2s infinite;
-        }
-
-        .status-over {
-            background: rgba(248, 113, 113, 0.1);
-            color: var(--danger-color);
-            border-color: rgba(248, 113, 113, 0.3);
-        }
-
-        .timer-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 25px;
-            width: 100%;
-        }
-
-        .timer-display {
-            font-size: clamp(2.5rem, 8vw, 3.5rem);
-            font-weight: 700;
-            font-family: monospace;
-            color: #ffffff;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            letter-spacing: 2px;
-        }
-
-        .balloon-zone {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            width: 60px;
-            height: 60px;
-        }
-
-        .balloon {
-            width: 32px;
-            height: 38px;
-            background: radial-gradient(circle at 30% 30%, #ff5e62, #ff2a6d);
-            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(255, 42, 109, 0.4), inset 3px 3px 8px rgba(255, 255, 255, 0.4);
-            transition: transform 0.3s ease, background 0.5s ease;
-            transform-origin: bottom center;
-        }
-
-        .balloon::after {
-            content: "";
-            position: absolute;
-            bottom: -4px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-bottom: 5px solid #ff2a6d;
-        }
-
-        .balloon.danger {
-            background: radial-gradient(circle at 30% 30%, #ff4b4b, #b91c1c) !important;
-            animation: shake 0.1s infinite alternate;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
-        }
-
-        .balloon.popped {
-            transform: scale(0) !important;
-            opacity: 0;
-        }
-
-        .pop-effect {
-            position: absolute;
-            font-size: 1.3rem;
+        .btn {
+            padding: 12px 20px;
+            font-size: 1rem;
             font-weight: bold;
-            color: var(--danger-color);
-            text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
-            display: none;
-            animation: zoomOut 0.5s ease-out forwards;
-        }
-
-        .btn-group {
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px 20px;
-            font-size: 1.05rem;
-            font-weight: 600;
             border: none;
-            border-radius: 14px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
         }
-
-        .btn-success {
-            background: linear-gradient(135deg, #4ade80, #22c55e);
-            color: #064e3b;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        .btn-offwork {
+            background-color: #ff5252;
+            color: white;
         }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+        .btn-offwork:hover {
+            background-color: #ff3838;
         }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
+        .btn-backend {
+            background-color: #4caf50;
+            color: white;
         }
-
-        .history-section {
-            margin-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 20px;
+        .btn-backend:hover {
+            background-color: #45a049;
         }
-
-        .history-header h3 {
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 12px;
-        }
-
-        .history-list {
-            max-height: 160px;
-            overflow-y: auto;
-            border-radius: 12px;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .history-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 10px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.9rem;
-        }
-
-        @media (min-width: 480px) {
-            .history-item {
-                flex-direction: row;
-                justify-content: space-between;
-            }
-        }
-
-        .text-green { color: var(--success-color); font-weight: bold; }
-
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 100% { transform: translate(-1px, -1px); } }
-        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-        @keyframes zoomOut { 0% { opacity: 1; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.5); } }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>💼 BABY乖乖下班時間監控計時器</h1>
-
-        <div class="main-layout">
-            <div class="control-zone">
-                <div id="statusBadge" class="status-badge status-waiting">等待加班時間中...</div>
-                
-                <div class="timer-row">
-                    <div class="timer-display" id="timerDisplay">00:00:00</div>
-                    <div class="balloon-zone">
-                        <div class="balloon" id="balloon"></div>
-                        <div class="pop-effect" id="popEffect">💥BOOM!</div>
-                    </div>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn-success" id="offWorkBtn" onclick="recordOffWork()">
-                        💼 我要下班了
-                    </button>
-                </div>
+        <h1>💼BABY乖乖下班時間監控計時器</h1>
+        
+        <div id="timer-display">
             </div>
-        </div>
 
-        <div class="history-section">
-            <div class="history-header">
-                <h3>📋 今日簽退紀錄（同步至雲端）</h3>
-            </div>
-            <div class="history-list" id="historyList"></div>
+        <div class="btn-group">
+            <button class="btn btn-offwork" onclick="submitOffWork()">🎉 我要下班了！</button>
+            
+            <a id="excelLink" class="btn btn-backend" href="#" target="_blank">📊 查看後台紀錄 (Google 試算表)</a>
         </div>
     </div>
 
     <script>
-        // 🔗 請記得替換成你自己的 Google Apps Script Web App URL
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUgAN6npWVtrYp7hsE8iInIzYG1t_lEast57_8EPdR6MV5KSUz4De2vYk4E5kF0kgp/exec";
+        // 1. 貼上你重新部署後取得的 Web App API 網址
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgndpuk-ujmuVONSAh_XDV0iuSmlK-QAY-f5qc60eoQl_F8AEqkBg0PhSLpXOv5Fds/exec";
 
-        let startTime = null;
-        let timerInterval = null;
+        // 2. 貼上你的 Google 試算表瀏覽網址（瀏覽器網址列複製即可）
+        const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1IBJ-VecBgHEvqd_qonlkXye6RCIH8-ibhMJKzqc0Ros/edit?gid=0#gid=0";
 
-        const START_HOUR = 17; 
-        const END_HOUR = 20;    
-        const TOTAL_OVERTIME_SECONDS = (END_HOUR - START_HOUR) * 3600; 
+        // 自動設定「查看後台紀錄」按鈕的連結
+        document.getElementById("excelLink").href = GOOGLE_SHEET_URL;
 
-        const balloon = document.getElementById('balloon');
-        const popEffect = document.getElementById('popEffect');
-        const timerDisplay = document.getElementById('timerDisplay');
-        const statusBadge = document.getElementById('statusBadge');
-        const historyList = document.getElementById('historyList');
-        const offWorkBtn = document.getElementById('offWorkBtn');
-
-        function updateTimer() {
+        // 下班紀錄觸發函式
+        function submitOffWork() {
             const now = new Date();
-            const currentHour = now.getHours();
-            const isWeekDay = now.getDay() >= 1 && now.getDay() <= 5;
-            const isOvertimePeriod = currentHour >= START_HOUR && currentHour < END_HOUR;
+            const timeString = now.toLocaleTimeString();
 
-            if (isWeekDay && isOvertimePeriod) {
-                if (!startTime) {
-                    startTime = new Date();
-                    startTime.setHours(START_HOUR, 0, 0, 0);
-                    statusBadge.className = "status-badge status-counting";
-                    statusBadge.innerText = "🚨 加班計時中！氣球緩慢膨脹中...";
-                }
+            // 提示發送中
+            alert("正在記錄下班時間，請稍候...");
 
-                const elapsedSeconds = Math.floor((now - startTime) / 1000);
-                timerDisplay.innerText = formatTime(elapsedSeconds);
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    timestamp: now.toLocaleString(),
+                    action: "下班簽退"
+                })
+            })
+            .then(() => {
+                alert("🎉 下班時間已成功寫入！您可以點擊下方按鈕查看試算表紀錄。");
+            })
+            .catch(error => {
 
-                const progress = Math.min(elapsedSeconds / TOTAL_OVERTIME_SECONDS, 1);
-                const scale = 1 + (progress * 1.6); 
-                balloon.style.transform = `scale(${scale})`;
-
-                if (progress > 0.8) {
-                    balloon.classList.add('danger');
-                    statusBadge.innerText = "💥 警告：氣球即將撐破！請儘速簽退！";
-                } else {
-                    balloon.classList.remove('danger');
-                }
-
-            } else if (isWeekDay && currentHour >= END_HOUR) {
-                timerDisplay.innerText = formatTime(TOTAL_OVERTIME_SECONDS);
-                statusBadge.className = "status-badge status-over";
-                statusBadge.innerText = "💀 氣球已爆炸！您加班已達極限上限。";
-                
-                if (!balloon.classList.contains('popped')) {
-                    balloon.classList.add('popped');
-                    popEffect.style.display = 'block';
-                }
-            } else {
-                statusBadge.className = "status-badge status-waiting";
-                statusBadge.innerText = "⏳ 尚未進入週一至週五 17:00 加班時間";
-            }
+                alert("紀錄失敗，請檢查網路或 Google API 設定。");
+            });
         }
-
-        async function recordOffWork() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('zh-TW');
-            const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false });
-            
-            let overtimeStr = "00:00:00";
-            let noteDisplay = "正常下班";
-            let rawNote = "正常下班";
-
-            if (startTime && now > startTime) {
-                const elapsedSeconds = Math.floor((now - startTime) / 1000);
-                const finalSeconds = Math.min(elapsedSeconds, TOTAL_OVERTIME_SECONDS);
-                overtimeStr = formatTime(finalSeconds);
-                
-                if (now.getHours() < END_HOUR) {
-                    noteDisplay = "<span class='text-green'>很棒! 早早簽退</span>";
-                    rawNote = "很棒!";
-                } else {
-                    noteDisplay = "加班至上限";
-                    rawNote = "加班至上限";
-                }
-            }
-
-            const recordData = {
-                date: dateStr,
-                signOutTime: timeStr,
-                duration: overtimeStr,
-                rawNote: rawNote
-            };
-
-            offWorkBtn.disabled = true;
-            offWorkBtn.innerText = "⏳ 雲端同步中...";
-
-            try {
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(recordData)
-                });
-
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerHTML = `
-                    <span>📅 ${dateStr} 簽退: ${timeStr}</span>
-                    <span>時數: <strong>${overtimeStr}</strong> (${noteDisplay})</span>
-                `;
-                historyList.insertBefore(item, historyList.firstChild);
-
-                alert(`下班紀錄成功並已同步至雲端！\n今日加班時數：${overtimeStr}`);
-            } catch (err) {
-                alert("同步失敗，請檢查 API 網址是否正確。");
-                console.error(err);
-            } finally {
-                offWorkBtn.disabled = false;
-                offWorkBtn.innerText = "💼 我要下班了";
-            }
-        }
-
-        function formatTime(totalSeconds) {
-            const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-            const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-            const secs = String(totalSeconds % 60).padStart(2, '0');
-            return `${hrs}:${mins}:${secs}`;
-        }
-
-        timerInterval = setInterval(updateTimer, 1000);
-        updateTimer();
     </script>
 </body>
 </html>
