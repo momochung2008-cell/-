@@ -5,124 +5,224 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💼BABY乖乖下班時間監控計時器</title>
     <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --glow-color: rgba(56, 189, 248, 0.3);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         }
+
         body {
-            background-color: #f4f6f9;
-            color: #333;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%);
+            color: var(--text-color);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-x: hidden;
         }
-        .container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 28px 36px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--glow-color);
             text-align: center;
-            max-width: 480px;
+            max-width: 520px;
             width: 100%;
         }
+
         h1 {
             font-size: 1.25rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 20px;
-            color: #2c3e50;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            color: #e2e8f0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
         }
+
+        /* 橫式主要資訊區塊 */
+        .timer-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .timer-box {
+            font-size: 2.2rem;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--accent-color);
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        /* 氣球容器與動畫 */
+        .balloon-wrapper {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .balloon {
+            font-size: 1.8rem;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.27);
+            cursor: pointer;
+            user-select: none;
+            filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+        }
+
+        .status-text {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+
+        /* 按鈕組 */
         .btn-group {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-top: 20px;
         }
+
         .btn {
-            padding: 12px 20px;
+            padding: 14px 24px;
             font-size: 1rem;
-            font-weight: bold;
+            font-weight: 600;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
         }
+
         .btn-offwork {
-            background-color: #ff5252;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
         }
+
         .btn-offwork:hover {
-            background-color: #ff3838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
         }
+
         .btn-backend {
-            background-color: #4caf50;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
+
         .btn-backend:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="card">
         <h1>💼BABY乖乖下班時間監控計時器</h1>
-        
-        <div id="timer-display">
+
+        <div class="timer-container">
+            <div class="timer-box" id="timer">00:00:00</div>
+            <div class="balloon-wrapper">
+                <div class="balloon" id="balloon">🎈</div>
             </div>
+        </div>
+
+        <div class="status-text" id="statusText">監控中：準備計算加班時間...</div>
 
         <div class="btn-group">
             <button class="btn btn-offwork" onclick="submitOffWork()">🎉 我要下班了！</button>
-            
             <a id="excelLink" class="btn btn-backend" href="#" target="_blank">📊 查看後台紀錄 (Google 試算表)</a>
         </div>
     </div>
 
     <script>
-        // 1. 貼上你重新部署後取得的 Web App API 網址
+        // 🔗 1. 貼上你的 Google Apps Script API 部署網址
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgndpuk-ujmuVONSAh_XDV0iuSmlK-QAY-f5qc60eoQl_F8AEqkBg0PhSLpXOv5Fds/exec";
 
-        // 2. 貼上你的 Google 試算表瀏覽網址（瀏覽器網址列複製即可）
+        // 🔗 2. 貼上你的 Google 試算表網址 (瀏覽器網址列複製即可)
         const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1IBJ-VecBgHEvqd_qonlkXye6RCIH8-ibhMJKzqc0Ros/edit?gid=0#gid=0";
 
-        // 自動設定「查看後台紀錄」按鈕的連結
+        // 自動連結後台按鈕
         document.getElementById("excelLink").href = GOOGLE_SHEET_URL;
 
-        // 下班紀錄觸發函式
+        // 加班計時器與氣球膨脹邏輯
+        let startTime = new Date();
+        // 假設從 17:00 開始算加班（這裡為即時動態計算範例）
+        
+        function updateTimer() {
+            const now = new Date();
+            const elapsedSeconds = Math.floor((now - startTime) / 1000);
+            
+            const hrs = String(Math.floor(elapsedSeconds / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(2, '0');
+            const secs = String(elapsedSeconds % 60).padStart(2, '0');
+            
+            document.getElementById('timer').innerText = `${hrs}:${mins}:${secs}`;
+
+            // 🎈 氣球隨加班時間膨脹 (每分鐘膨脹一點，上限縮放 2.2 倍)
+            const balloon = document.getElementById('balloon');
+            const scale = Math.min(1 + (elapsedSeconds / 1800), 2.2); 
+            balloon.style.transform = `scale(${scale})`;
+
+            if (scale >= 2.2) {
+                balloon.innerText = "💥"; // 膨脹極限爆炸效果
+            }
+        }
+
+        setInterval(updateTimer, 1000);
+
+        // 下班簽退並寫入後台
         function submitOffWork() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString();
+            const timeStr = now.toLocaleString('zh-TW', { hour12: false });
 
-            // 提示發送中
-            alert("正在記錄下班時間，請稍候...");
+            alert("正在寫入下班紀錄至雲端，請稍候...");
 
             fetch(GOOGLE_SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    timestamp: now.toLocaleString(),
+                    timestamp: timeStr,
                     action: "下班簽退"
                 })
             })
             .then(() => {
-                alert("🎉 下班時間已成功寫入！您可以點擊下方按鈕查看試算表紀錄。");
+                alert("🎉 下班時間已成功傳送！可以點擊「查看後台紀錄」確認喔！");
             })
             .catch(error => {
-
-                alert("紀錄失敗，請檢查網路或 Google API 設定。");
+                alert("傳送失敗，請確認 Apps Script API 網址是否正確。");
             });
         }
     </script>
